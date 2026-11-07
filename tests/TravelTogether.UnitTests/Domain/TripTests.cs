@@ -1,6 +1,6 @@
-﻿using WebApplication1.Domain.Entities;
+using TravelTogether.Domain.Entities;
 
-namespace WebApplication1.Domain.Tests;
+namespace TravelTogether.UnitTests.Domain;
 
 public class TripTests
 {

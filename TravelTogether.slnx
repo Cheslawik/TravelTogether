@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TravelTogether.Domain/TravelTogether.Domain.csproj" />
+    <Project Path="src/TravelTogether.Infrastructure/TravelTogether.Infrastructure.csproj" />
+    <Project Path="src/TravelTogether.WebApi/TravelTogether.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TravelTogether.UnitTests/TravelTogether.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+  </Folder>
+</Solution>
