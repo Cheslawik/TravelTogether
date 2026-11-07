@@ -19,6 +19,10 @@ public sealed class Trip
     private readonly List<Expense> _expenses = [];
 
     public Guid Id { get; private set; }
+
+    /// <summary>The user who created the trip; only they can see and change it.</summary>
+    public Guid OwnerId { get; private set; }
+
     public string Title { get; private set; } = null!;
     public string? Description { get; private set; }
 
@@ -37,13 +41,20 @@ public sealed class Trip
     }
 
     public Trip(
+        Guid ownerId,
         string title,
         string? description,
         string currency,
         DateOnly startDate,
         DateOnly endDate)
     {
+        if (ownerId == Guid.Empty)
+        {
+            throw new DomainException("Trip owner is required.");
+        }
+
         Id = Guid.NewGuid();
+        OwnerId = ownerId;
         CreatedAt = DateTime.UtcNow;
         Currency = NormalizeCurrency(currency);
         UpdateDetails(title, description, startDate, endDate);
