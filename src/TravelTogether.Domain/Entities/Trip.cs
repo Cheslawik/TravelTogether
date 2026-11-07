@@ -1,4 +1,5 @@
 using TravelTogether.Domain.Common;
+using TravelTogether.Domain.Settlements;
 using TravelTogether.Domain.Splitting;
 
 namespace TravelTogether.Domain.Entities;
@@ -169,6 +170,25 @@ public sealed class Trip
     public void RemoveExpense(Guid expenseId)
     {
         _expenses.Remove(GetExpense(expenseId));
+    }
+
+    /// <summary>Paid amount, share of the costs and net balance of every participant.</summary>
+    public IReadOnlyList<ParticipantBalance> CalculateBalances()
+    {
+        var splits = _expenses.SelectMany(e => e.Splits).ToArray();
+
+        return _participants
+            .Select(p => new ParticipantBalance(
+                p.Id,
+                Paid: _expenses.Where(e => e.PaidByParticipantId == p.Id).Sum(e => e.Amount),
+                Share: splits.Where(s => s.ParticipantId == p.Id).Sum(s => s.Amount)))
+            .ToArray();
+    }
+
+    /// <summary>The transfers that settle all debts of the trip, see <see cref="DebtSimplifier"/>.</summary>
+    public IReadOnlyList<Transfer> CalculateSettlement()
+    {
+        return DebtSimplifier.Simplify(CalculateBalances());
     }
 
     public Participant GetParticipant(Guid participantId)
