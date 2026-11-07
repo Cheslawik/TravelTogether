@@ -6,6 +6,7 @@
     <Project Path="src/TravelTogether.WebApi/TravelTogether.WebApi.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/TravelTogether.IntegrationTests/TravelTogether.IntegrationTests.csproj" />
     <Project Path="tests/TravelTogether.UnitTests/TravelTogether.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
