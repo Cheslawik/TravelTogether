@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\TravelTogether.Domain\TravelTogether.Domain.csproj" />
+    <ProjectReference Include="..\..\src\TravelTogether.Application\TravelTogether.Application.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,12 +9,12 @@ public class TripTests
     private static readonly DateOnly Day = new(2026, 8, 2);
 
     private static Trip CreateTrip() =>
-        new("Italy", null, "EUR", new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 10));
+        new(Guid.NewGuid(), "Italy", null, "EUR", new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 10));
 
     [Fact]
     public void Constructor_ShouldThrow_WhenStartDateIsAfterEndDate()
     {
-        var action = () => new Trip("Italy", null, "EUR", new DateOnly(2026, 8, 10), new DateOnly(2026, 8, 1));
+        var action = () => new Trip(Guid.NewGuid(), "Italy", null, "EUR", new DateOnly(2026, 8, 10), new DateOnly(2026, 8, 1));
 
         Assert.Throws<DomainException>(action);
     }
@@ -25,7 +25,7 @@ public class TripTests
     [InlineData("E1R")]
     public void Constructor_ShouldThrow_WhenCurrencyIsNotIsoCode(string currency)
     {
-        var action = () => new Trip("Italy", null, currency, Day, Day);
+        var action = () => new Trip(Guid.NewGuid(), "Italy", null, currency, Day, Day);
 
         Assert.Throws<DomainException>(action);
     }
@@ -33,7 +33,7 @@ public class TripTests
     [Fact]
     public void Constructor_ShouldNormalizeCurrencyToUpperCase()
     {
-        var trip = new Trip("Italy", null, "pln", Day, Day);
+        var trip = new Trip(Guid.NewGuid(), "Italy", null, "pln", Day, Day);
 
         Assert.Equal("PLN", trip.Currency);
     }

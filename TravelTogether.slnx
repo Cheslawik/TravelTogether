@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/TravelTogether.Domain/TravelTogether.Domain.csproj" />
+    <Project Path="src/TravelTogether.Application/TravelTogether.Application.csproj" />
     <Project Path="src/TravelTogether.Infrastructure/TravelTogether.Infrastructure.csproj" />
     <Project Path="src/TravelTogether.WebApi/TravelTogether.WebApi.csproj" />
   </Folder>

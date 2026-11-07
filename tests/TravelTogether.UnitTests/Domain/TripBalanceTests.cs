@@ -11,7 +11,7 @@ public class TripBalanceTests
     [Fact]
     public void CalculateBalances_ShouldSumPaidAndShareOfEachParticipant()
     {
-        var trip = new Trip("Lisbon", null, "EUR", Day, Day.AddDays(3));
+        var trip = new Trip(Guid.NewGuid(), "Lisbon", null, "EUR", Day, Day.AddDays(3));
         var anna = trip.AddParticipant("Anna", null);
         var ben = trip.AddParticipant("Ben", null);
         var carl = trip.AddParticipant("Carl", null);
@@ -35,7 +35,7 @@ public class TripBalanceTests
     [Fact]
     public void CalculateSettlement_ShouldSettleAllDebtsOfTrip()
     {
-        var trip = new Trip("Lisbon", null, "EUR", Day, Day.AddDays(3));
+        var trip = new Trip(Guid.NewGuid(), "Lisbon", null, "EUR", Day, Day.AddDays(3));
         var anna = trip.AddParticipant("Anna", null);
         var ben = trip.AddParticipant("Ben", null);
         var carl = trip.AddParticipant("Carl", null);
@@ -56,7 +56,7 @@ public class TripBalanceTests
     [Fact]
     public void CalculateSettlement_ShouldBeEmpty_WhenTripHasNoExpenses()
     {
-        var trip = new Trip("Lisbon", null, "EUR", Day, Day);
+        var trip = new Trip(Guid.NewGuid(), "Lisbon", null, "EUR", Day, Day);
         trip.AddParticipant("Anna", null);
 
         Assert.Empty(trip.CalculateSettlement());
