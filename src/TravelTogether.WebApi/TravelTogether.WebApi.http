@@ -1,1 +1,75 @@
-@TravelTogether_HostAddress = http://localhost:5146
+# Requests for the VS / Rider / VS Code REST client.
+# Run them top to bottom: each one stores ids for the next.
+
+@host = http://localhost:5146
+
+### Register
+# @name register
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "anna@example.com", "password": "Passw0rd!", "displayName": "Anna" }
+
+### Login
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "anna@example.com", "password": "Passw0rd!" }
+
+@token = {{login.response.body.$.accessToken}}
+
+### Create a trip
+# @name trip
+POST {{host}}/api/trips
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "title": "Lisbon", "currency": "EUR", "startDate": "2026-08-01", "endDate": "2026-08-04" }
+
+@tripId = {{trip.response.body.$.id}}
+
+### Add participants
+# @name anna
+POST {{host}}/api/trips/{{tripId}}/participants
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Anna" }
+
+###
+# @name ben
+POST {{host}}/api/trips/{{tripId}}/participants
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Ben" }
+
+###
+@annaId = {{anna.response.body.$.id}}
+@benId = {{ben.response.body.$.id}}
+
+### Add an expense split by shares
+POST {{host}}/api/trips/{{tripId}}/expenses
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Apartment",
+  "amount": 300,
+  "date": "2026-08-01",
+  "paidByParticipantId": "{{annaId}}",
+  "splitType": "Shares",
+  "splits": [
+    { "participantId": "{{annaId}}", "shares": 2 },
+    { "participantId": "{{benId}}", "shares": 1 }
+  ]
+}
+
+### Balances
+GET {{host}}/api/trips/{{tripId}}/balances
+Authorization: Bearer {{token}}
+
+### Who pays whom
+GET {{host}}/api/trips/{{tripId}}/settlement
+Authorization: Bearer {{token}}
