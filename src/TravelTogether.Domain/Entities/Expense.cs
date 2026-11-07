@@ -1,107 +1,96 @@
+using TravelTogether.Domain.Common;
+using TravelTogether.Domain.Splitting;
+
 namespace TravelTogether.Domain.Entities;
 
-public class Expense
+/// <summary>Money paid by one participant on behalf of one or more participants.</summary>
+public sealed class Expense
 {
+    public const int TitleMaxLength = 200;
+
+    private readonly List<ExpenseSplit> _splits = [];
+
     public Guid Id { get; private set; }
     public Guid TripId { get; private set; }
     public Guid PaidByParticipantId { get; private set; }
     public string Title { get; private set; } = null!;
     public decimal Amount { get; private set; }
-    public DateTime Date { get; private set; }
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public DateOnly Date { get; private set; }
+    public SplitType SplitType { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public Trip Trip { get; private set; } = null!;
-    public Participant PaidBy { get; private set; } = null!;
+    public IReadOnlyCollection<ExpenseSplit> Splits => _splits;
 
-    private readonly List<ExpenseSplit> _expenseSplits = [];
-    public IReadOnlyCollection<ExpenseSplit> ExpenseSplits => _expenseSplits;
-    
-    private Expense() { }
-
-    internal Expense(Guid tripId, Guid paidByParticipantId, string title, decimal amount, DateTime date)
+    private Expense()
     {
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            throw new ArgumentException("Title cannot be empty.", nameof(title));
-        }
+    }
 
-        if (tripId == Guid.Empty)
-        {
-            throw new ArgumentException("TripId must be a valid GUID.", nameof(tripId));
-        }
-        
+    internal Expense(
+        Guid tripId,
+        Guid paidByParticipantId,
+        string title,
+        decimal amount,
+        DateOnly date,
+        SplitType splitType,
+        IReadOnlyList<ExpenseShare> shares)
+    {
+        Id = Guid.NewGuid();
+        TripId = tripId;
+        CreatedAt = DateTime.UtcNow;
+        Update(paidByParticipantId, title, amount, date, splitType, shares);
+    }
+
+    /// <summary>True if the participant paid for this expense or takes part in its split.</summary>
+    public bool Involves(Guid participantId)
+    {
+        return PaidByParticipantId == participantId
+            || _splits.Exists(s => s.ParticipantId == participantId);
+    }
+
+    internal void Update(
+        Guid paidByParticipantId,
+        string title,
+        decimal amount,
+        DateOnly date,
+        SplitType splitType,
+        IReadOnlyList<ExpenseShare> shares)
+    {
         if (amount <= 0)
-           { 
-                throw new ArgumentException("Amount must be greater than zero.", nameof(amount)); 
-           }
-
-        if (paidByParticipantId == Guid.Empty)
-           { 
-                throw new ArgumentException("PaidByParticipantId must be a valid GUID.", nameof(paidByParticipantId)); 
-           }
-
-        if (date == default)
         {
-            throw new ArgumentException("Date is required.", nameof(date));
+            throw new DomainException("Expense amount must be greater than zero.");
         }
 
         if (decimal.Round(amount, 2) != amount)
         {
-            throw new ArgumentException(
-                "Amount cannot have more than two decimal places.",
-                nameof(amount));
+            throw new DomainException("Expense amount cannot have more than two decimal places.");
         }
 
-        Id = Guid.NewGuid();
-        TripId = tripId;
+        if (date == default)
+        {
+            throw new DomainException("Expense date is required.");
+        }
+
+        if (!Enum.IsDefined(splitType))
+        {
+            throw new DomainException("Unknown split type.");
+        }
+
+        var weights = splitType == SplitType.Equal
+            ? shares.Select(_ => 1).ToArray()
+            : shares.Select(s => s.Shares).ToArray();
+
+        var amounts = ExpenseSplitter.Split(amount, weights);
+
         PaidByParticipantId = paidByParticipantId;
-        Title = title;
+        Title = Guard.RequiredText(title, TitleMaxLength, "Expense title");
         Amount = amount;
         Date = date;
-        CreatedAt = DateTime.UtcNow;
-    }
+        SplitType = splitType;
 
-    internal void SplitEqually(IReadOnlyList<Guid> participantIds)
-    {
-        ArgumentNullException.ThrowIfNull(participantIds);
-
-        if (_expenseSplits.Count > 0)
+        _splits.Clear();
+        for (var i = 0; i < shares.Count; i++)
         {
-            throw new InvalidOperationException(
-                "Expense splits have already been created.");
-        }
-
-        if (participantIds.Count == 0)
-        {
-            throw new ArgumentException(
-                "At least one participant is required.",
-                nameof(participantIds));
-        }
-
-        if (Amount < participantIds.Count / 100m)
-        {
-            throw new InvalidOperationException(
-                "The expense amount is too small to split between all participants.");
-        }           
-
-        var baseAmount = Math.Floor(Amount / participantIds.Count * 100m) / 100m;
-        var remainder = Amount - (baseAmount * participantIds.Count);
-
-        for (var i = 0; i < participantIds.Count; i++)
-        {
-            var splitAmount = baseAmount;
-
-            if (i == 0)
-            {
-                splitAmount += remainder;
-            }
-
-            var split = new ExpenseSplit(
-                Id,
-                participantIds[i],
-                splitAmount);
-
-            _expenseSplits.Add(split);
+            _splits.Add(new ExpenseSplit(Id, shares[i].ParticipantId, weights[i], amounts[i]));
         }
     }
 }
