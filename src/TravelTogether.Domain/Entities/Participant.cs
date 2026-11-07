@@ -1,43 +1,32 @@
+using TravelTogether.Domain.Common;
+
 namespace TravelTogether.Domain.Entities;
 
-public class Participant
+/// <summary>A person travelling on a trip. Participants do not need a user account.</summary>
+public sealed class Participant
 {
+    public const int NameMaxLength = 100;
+    public const int EmailMaxLength = 254;
+
     public Guid Id { get; private set; }
     public Guid TripId { get; private set; }
     public string Name { get; private set; } = null!;
-    public string Email { get; private set; } = null!;
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    
-    public Trip Trip { get; private set; } = null!;
-    public ICollection<Expense> PaidExpenses { get; private set; } = new List<Expense>();
-    public ICollection<ExpenseSplit> ExpenseSplits { get; private set; } = new List<ExpenseSplit>();
+    public string? Email { get; private set; }
 
-    
-    private Participant() { }
-
-    internal Participant(Guid tripId, string name, string email)
+    private Participant()
     {
-        if(string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("Name cannot be empty.", nameof(name));
-        }
-        
-        if(string.IsNullOrWhiteSpace(email))
-        {
-            throw new ArgumentException("Email cannot be empty.", nameof(email));
-        }
-        
-        if(tripId == Guid.Empty)
-        {
-            throw new ArgumentException(
-                "TripId must be a valid GUID.",
-                nameof(tripId));
-        }
+    }
 
+    internal Participant(Guid tripId, string name, string? email)
+    {
         Id = Guid.NewGuid();
         TripId = tripId;
-        Name = name;
-        Email = email;
-        CreatedAt = DateTime.UtcNow;
+        Update(name, email);
+    }
+
+    internal void Update(string name, string? email)
+    {
+        Name = Guard.RequiredText(name, NameMaxLength, "Participant name");
+        Email = Guard.OptionalText(email, EmailMaxLength, "Participant email");
     }
 }
